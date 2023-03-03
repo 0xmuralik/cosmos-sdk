@@ -1,6 +1,7 @@
 package unknownproto
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -662,6 +663,25 @@ func TestPackedEncoding(t *testing.T) {
 	unmarshalled := &testdata.TestRepeatedUints{}
 	_, err = RejectUnknownFields(marshalled, unmarshalled, false, DefaultAnyResolver{})
 	require.NoError(t, err)
+}
+
+func TestMapField(t *testing.T) {
+	data := &testdata.Nested3A{
+		Id:   10,
+		Name: "test map",
+		Index: map[int64]*testdata.Nested4A{
+			1: {Id: 1, Name: "first"},
+		},
+	}
+	blob, err := proto.Marshal(data)
+	if err != nil {
+		t.Fatalf("Failed to marshal input: %v", err)
+	}
+
+	c1 := new(testdata.Nested3A)
+	gotErr := RejectUnknownFieldsStrict(blob, c1, DefaultAnyResolver{})
+	fmt.Println("ERROR====", gotErr)
+	require.NoError(t, gotErr)
 }
 
 func mustMarshal(msg proto.Message) []byte {
